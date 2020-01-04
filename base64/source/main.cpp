@@ -6,7 +6,7 @@
 
 using namespace GarrysMod::Lua;
 
-static uint32_t getDecodedSize(const char* input)
+static size_t getDecodedSize(const char* input)
 {
 	size_t length = strlen(input);
 	if (length < 4) return 0;
@@ -67,7 +67,7 @@ void C_Base64Decode(const char *input, char *output, int oplen){
 LUA_FUNCTION(Base64Decode){
 	LUA->CheckType(1,GarrysMod::Lua::Type::STRING);
 	const char* Input = LUA->GetString(1);
-	uint32_t decodedSize = getDecodedSize(Input);
+	size_t decodedSize = getDecodedSize(Input);
 
 	if (decodedSize == 0)
 	{
@@ -78,7 +78,7 @@ LUA_FUNCTION(Base64Decode){
 	char* Output = new char[decodedSize];
 	memset(Output, 0, decodedSize);
 	C_Base64Decode(Input, Output, decodedSize);
-	LUA->PushString((const char*)Output);
+	LUA->PushString((const char*)Output, decodedSize);
 	delete[] Output;
 	return 1;
 }
