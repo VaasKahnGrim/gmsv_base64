@@ -9,7 +9,7 @@ using namespace GarrysMod::Lua;
 static uint32_t getDecodedSize(const char* input)
 {
 	size_t length = strlen(input);
-	if (length == 0) return 0;
+	if (length < 4) return 0;
 
 	const char* last = input + length - 4;
 	const char* pad = strchr(last, '=');
