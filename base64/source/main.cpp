@@ -6,6 +6,18 @@
 
 using namespace GarrysMod::Lua;
 
+static uint32_t getDecodedSize(const char* input)
+{
+	size_t length = strlen(input);
+	if (length == 0) return 0;
+
+	const char* last = input + length - 4;
+	const char* pad = strchr(last, '=');
+	
+	int32_t padLength = pad == NULL ? 0 : (last - pad);
+	return (length / 4) * 3 - padLength;
+}
+
 void decodeblock(char *input,char *output,int oplen){
 	char decodedstr[5] = "";
 
@@ -19,7 +31,7 @@ void decodeblock(char *input,char *output,int oplen){
 
 char BASE64CHARSET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void C_Base64Decode(char *input,char *output,int oplen){
+void C_Base64Decode(const char *input, char *output, int oplen){
 	char decoderinput[5]	= "";
 	char* charval			= 0;
 	int index 				= 0;
@@ -52,20 +64,22 @@ void C_Base64Decode(char *input,char *output,int oplen){
    }
 }
 
-#define BUFFFERLEN 5242880
-
 LUA_FUNCTION(Base64Decode){
 	LUA->CheckType(1,GarrysMod::Lua::Type::STRING);
 	const char* Input = LUA->GetString(1);
-	char cInput[BUFFFERLEN + 1] = "";
-	char cOutput[BUFFFERLEN + 1] = "";
-	sprintf(cInput,"%s",Input);
-	C_Base64Decode(cInput,cOutput,BUFFFERLEN);
-	if(!cOutput){
-		LUA->Push(false);
+	uint32_t decodedSize = getDecodedSize(Input);
+
+	if (decodedSize == 0)
+	{
+		LUA->PushString("");
 		return 1;
 	}
-	LUA->PushString((const char*)cOutput);
+
+	char* Output = new char[decodedSize];
+	memset(Output, 0, decodedSize);
+	C_Base64Decode(Input, Output, decodedSize);
+	LUA->PushString((const char*)Output);
+	delete[] Output;
 	return 1;
 }
 
